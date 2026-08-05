@@ -1,0 +1,185 @@
+{
+  "name": "Knowledge Base Uploader",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Enterprise Decision — Knowledge Base Uploader",
+        "formDescription": "Upload reference documents (policies, standards, past decisions, rubrics). They are embedded into the shared knowledge base and used by all five review agents.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Knowledge Documents",
+              "fieldType": "file",
+              "fieldName": "knowledge_files",
+              "acceptFileTypes": ".pdf,.txt,.md,.docx,.csv",
+              "requiredField": true
+            }
+          ]
+        },
+        "responseMode": "lastNode",
+        "options": {
+          "buttonLabel": "Add to Knowledge Base",
+          "path": "kb-uploader",
+          "showHeaders": false
+        }
+      },
+      "id": "f576f14e-74fa-4072-b89c-cbdcd08b02d2",
+      "name": "Upload Knowledge Files",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        112
+      ],
+      "webhookId": "d39a0f34-8c6a-4e5d-8b4b-f3743ad13c0f"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "mode": "id",
+          "value": "cummins-pixel-minds"
+        },
+        "options": {
+          "clearNamespace": false,
+          "pineconeNamespace": "enterprise-decision-kb"
+        }
+      },
+      "id": "f29f50a6-4647-4294-9bb4-ae2663132b73",
+      "name": "Upsert to Pinecone",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        112
+      ],
+      "credentials": {
+        "pineconeApi": {
+          "id": "8I12RuCv1EjE6xHf",
+          "name": "Pinecone account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 1024
+        }
+      },
+      "id": "5d046036-ce4e-41ae-beab-e0dec827a358",
+      "name": "KB Embeddings",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        336
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "BCRBswaVcQU0AI4y",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "source",
+                "value": "knowledge-base-uploader"
+              }
+            ]
+          }
+        }
+      },
+      "id": "53daaddc-9dd5-4ac3-8d96-a59ec2ed03a1",
+      "name": "Load Uploaded Files",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        384,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "respondWith": "showText",
+        "responseText": "Your documents have been added to the shared knowledge base. All review agents will now use them."
+      },
+      "id": "78c0fded-e153-4619-aa75-1c0a8f118f85",
+      "name": "Upload Complete",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        576,
+        112
+      ],
+      "webhookId": "57b6d3b3-66c2-415a-8df6-60b8d53aea1c"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Upload Knowledge Files": {
+      "main": [
+        [
+          {
+            "node": "Upsert to Pinecone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert to Pinecone": {
+      "main": [
+        [
+          {
+            "node": "Upload Complete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "KB Embeddings": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Upsert to Pinecone",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Uploaded Files": {
+      "ai_document": [
+        [
+          {
+            "node": "Upsert to Pinecone",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "2009674c-2d9b-4b4c-a412-da959145ca5a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "50261424efab61ecb75d0f0703823cac800be10833b222abb893f9625696b818"
+  },
+  "nodeGroups": [],
+  "id": "yUs7UnotxF2miTUV",
+  "tags": []
+}
